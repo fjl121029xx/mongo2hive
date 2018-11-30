@@ -34,7 +34,7 @@ object MongoSyn2Hive {
 
     val conf = new SparkConf()
       .setAppName("MongoSyn2Hive")
-//                  .setMaster("local")
+      //                  .setMaster("local")
       .set("hive.exec.dynamic.partition", "true")
       .set("hive.exec.dynamic.partition.mode", "nonstrict")
       .set("hive.exec.max.dynamic.partitions", "1800")
@@ -101,10 +101,10 @@ object MongoSyn2Hive {
           "samplesPerPartition" -> "10000"
         )
       )).toDF() // Uses the ReadConfig
-    ztk_answer_card.createOrReplaceTempView("ztk_answer_card2")
+    ztk_answer_card.createOrReplaceTempView("ztk_answer_card09")
 
     val filterTime = sc.broadcast(args(0).toLong)
-    val zac = sql("select userId,corrects,paper.questions,times,createTime,subject from ztk_answer_card2 ")
+    val zac = sql("select userId,corrects,paper.questions,times,createTime,subject from ztk_answer_card09 ")
       .filter {
         r =>
           val r5 = r.get(5)
@@ -152,8 +152,9 @@ object MongoSyn2Hive {
         }
       }.toDF()
 
-    zac.createOrReplaceTempView("a")
-    sql("select userId,correct,question,answerTime,point,subject,createTime from a")
-      .repartition(1).write.format("orc").insertInto("ztk_answer_card")
+    zac.rdd.saveAsTextFile("hdfs://ns1/huatu-data/ztk_answer_card/jkl")
+    //    zac.createOrReplaceTempView("a")
+    //    sql("select userId,correct,question,answerTime,point,subject,createTime from a")
+    //      .repartition(1).write.format("orc").insertInto("ztk_answer_card")
   }
 }
